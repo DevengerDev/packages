@@ -18,7 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 /** Provides various utilities for camera. */
-public final class CameraUtils {
+public final class
+CameraUtils {
 
   private CameraUtils() {}
 
