@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:async/async.dart';
-import 'package:camera_avfoundation/src/avfoundation_camera.dart';
+import 'package:camera_avfoundation/camera_avfoundation.dart';
 import 'package:camera_avfoundation/src/utils.dart';
 import 'package:camera_platform_interface/camera_platform_interface.dart';
 import 'package:flutter/services.dart';
@@ -32,16 +32,38 @@ void main() {
     // registerWith is called very early in initialization the bindings won't
     // have been initialized. While registerWith could initialize them, that
     // could slow down startup, so instead the handler should be set up lazily.
-    final ByteData? response =
-        await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
-            .defaultBinaryMessenger
-            .handlePlatformMessage(
-                AVFoundationCamera.deviceEventChannelName,
-                const StandardMethodCodec().encodeMethodCall(const MethodCall(
-                    'orientation_changed',
-                    <String, Object>{'orientation': 'portraitDown'})),
-                (ByteData? data) {});
+    final ByteData? response = await TestDefaultBinaryMessengerBinding
+        .instance.defaultBinaryMessenger
+        .handlePlatformMessage(
+            AVFoundationCamera.deviceEventChannelName,
+            const StandardMethodCodec().encodeMethodCall(const MethodCall(
+                'orientation_changed',
+                <String, Object>{'orientation': 'portraitDown'})),
+            (ByteData? data) {});
     expect(response, null);
+  });
+
+  group('AVCaptureDeviceType tests', () {
+    test('AVCaptureDeviceType should contain 10 options', () {
+      const List<AVCaptureDeviceType> values = AVCaptureDeviceType.values;
+
+      expect(values.length, 10);
+    });
+
+    test('AVCaptureDeviceType enum should have items in correct index', () {
+      const List<AVCaptureDeviceType> values = AVCaptureDeviceType.values;
+
+      expect(values[0], AVCaptureDeviceType.builtInWideAngleCamera);
+      expect(values[1], AVCaptureDeviceType.builtInUltraWideCamera);
+      expect(values[2], AVCaptureDeviceType.builtInTelephotoCamera);
+      expect(values[3], AVCaptureDeviceType.builtInDualCamera);
+      expect(values[4], AVCaptureDeviceType.builtInDualWideCamera);
+      expect(values[5], AVCaptureDeviceType.builtInTripleCamera);
+      expect(values[6], AVCaptureDeviceType.continuityCamera);
+      expect(values[7], AVCaptureDeviceType.external);
+      expect(values[8], AVCaptureDeviceType.builtInLiDARDepthCamera);
+      expect(values[9], AVCaptureDeviceType.builtInTrueDepthCamera);
+    });
   });
 
   group('Creation, Initialization & Disposal Tests', () {
@@ -59,10 +81,11 @@ void main() {
 
       // Act
       final int cameraId = await camera.createCamera(
-        const CameraDescription(
+        const AVCameraDescription(
             name: 'Test',
             lensDirection: CameraLensDirection.back,
-            sensorOrientation: 0),
+            sensorOrientation: 0,
+            captureDeviceType: AVCaptureDeviceType.builtInWideAngleCamera),
         ResolutionPreset.high,
       );
 
@@ -94,10 +117,11 @@ void main() {
       // Act
       expect(
         () => camera.createCamera(
-          const CameraDescription(
+          const AVCameraDescription(
             name: 'Test',
             lensDirection: CameraLensDirection.back,
             sensorOrientation: 0,
+            captureDeviceType: AVCaptureDeviceType.builtInWideAngleCamera,
           ),
           ResolutionPreset.high,
         ),
@@ -125,10 +149,11 @@ void main() {
       // Act
       expect(
         () => camera.createCamera(
-          const CameraDescription(
+          const AVCameraDescription(
             name: 'Test',
             lensDirection: CameraLensDirection.back,
             sensorOrientation: 0,
+            captureDeviceType: AVCaptureDeviceType.builtInWideAngleCamera,
           ),
           ResolutionPreset.high,
         ),
@@ -187,10 +212,11 @@ void main() {
           });
       final AVFoundationCamera camera = AVFoundationCamera();
       final int cameraId = await camera.createCamera(
-        const CameraDescription(
+        const AVCameraDescription(
           name: 'Test',
           lensDirection: CameraLensDirection.back,
           sensorOrientation: 0,
+          captureDeviceType: AVCaptureDeviceType.builtInWideAngleCamera,
         ),
         ResolutionPreset.high,
       );
@@ -234,10 +260,11 @@ void main() {
 
       final AVFoundationCamera camera = AVFoundationCamera();
       final int cameraId = await camera.createCamera(
-        const CameraDescription(
+        const AVCameraDescription(
           name: 'Test',
           lensDirection: CameraLensDirection.back,
           sensorOrientation: 0,
+          captureDeviceType: AVCaptureDeviceType.builtInWideAngleCamera,
         ),
         ResolutionPreset.high,
       );
@@ -282,10 +309,11 @@ void main() {
       );
       camera = AVFoundationCamera();
       cameraId = await camera.createCamera(
-        const CameraDescription(
+        const AVCameraDescription(
           name: 'Test',
           lensDirection: CameraLensDirection.back,
           sensorOrientation: 0,
+          captureDeviceType: AVCaptureDeviceType.builtInWideAngleCamera,
         ),
         ResolutionPreset.high,
       );
@@ -422,8 +450,7 @@ void main() {
       const DeviceOrientationChangedEvent event =
           DeviceOrientationChangedEvent(DeviceOrientation.portraitUp);
       for (int i = 0; i < 3; i++) {
-        await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
-            .defaultBinaryMessenger
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .handlePlatformMessage(
                 AVFoundationCamera.deviceEventChannelName,
                 const StandardMethodCodec().encodeMethodCall(
@@ -455,10 +482,11 @@ void main() {
       );
       camera = AVFoundationCamera();
       cameraId = await camera.createCamera(
-        const CameraDescription(
+        const AVCameraDescription(
           name: 'Test',
           lensDirection: CameraLensDirection.back,
           sensorOrientation: 0,
+          captureDeviceType: AVCaptureDeviceType.builtInWideAngleCamera,
         ),
         ResolutionPreset.high,
       );
@@ -487,12 +515,14 @@ void main() {
         <String, dynamic>{
           'name': 'Test 1',
           'lensFacing': 'front',
-          'sensorOrientation': 1
+          'sensorOrientation': 1,
+          'deviceType': 'builtInTrueDepthCamera'
         },
         <String, dynamic>{
           'name': 'Test 2',
           'lensFacing': 'back',
-          'sensorOrientation': 2
+          'sensorOrientation': 2,
+          'deviceType': 'builtInWideAngleCamera'
         }
       ];
       final MethodChannelMock channel = MethodChannelMock(
@@ -505,17 +535,22 @@ void main() {
 
       // Assert
       expect(channel.log, <Matcher>[
-        isMethodCall('availableCameras', arguments: null),
+        isMethodCall('availableCameras', arguments: <String, Object?>{
+          'physicalCameras': true,
+          'logicalCameras': false
+        }),
       ]);
       expect(cameras.length, returnData.length);
       for (int i = 0; i < returnData.length; i++) {
         final Map<String, Object?> typedData =
             (returnData[i] as Map<dynamic, dynamic>).cast<String, Object?>();
-        final CameraDescription cameraDescription = CameraDescription(
+        final CameraDescription cameraDescription = AVCameraDescription(
           name: typedData['name']! as String,
           lensDirection:
               parseCameraLensDirection(typedData['lensFacing']! as String),
           sensorOrientation: typedData['sensorOrientation']! as int,
+          captureDeviceType:
+              parseAVCaptureDeviceType(typedData['deviceType']! as String),
         );
         expect(cameras[i], cameraDescription);
       }
@@ -707,10 +742,11 @@ void main() {
         channelName: _channelName,
         methods: <String, dynamic>{'setDescriptionWhileRecording': null},
       );
-      const CameraDescription camera2Description = CameraDescription(
+      const AVCameraDescription camera2Description = AVCameraDescription(
           name: 'Test2',
           lensDirection: CameraLensDirection.front,
-          sensorOrientation: 0);
+          sensorOrientation: 0,
+          captureDeviceType: AVCaptureDeviceType.builtInWideAngleCamera);
 
       // Act
       await camera.setDescriptionWhileRecording(camera2Description);
@@ -1145,11 +1181,45 @@ void main() {
         isMethodCall('stopImageStream', arguments: null),
       ]);
     });
+
+    test('Should set the ImageFileFormat to heif', () async {
+      // Arrange
+      final MethodChannelMock channel = MethodChannelMock(
+        channelName: _channelName,
+        methods: <String, dynamic>{'setImageFileFormat': 'heif'},
+      );
+
+      // Act
+      await camera.setImageFileFormat(cameraId, ImageFileFormat.heif);
+
+      // Assert
+      expect(channel.log, <Matcher>[
+        isMethodCall('setImageFileFormat', arguments: <String, Object?>{
+          'cameraId': cameraId,
+          'fileFormat': 'heif',
+        }),
+      ]);
+    });
+
+    test('Should set the ImageFileFormat to jpeg', () async {
+      // Arrange
+      final MethodChannelMock channel = MethodChannelMock(
+        channelName: _channelName,
+        methods: <String, dynamic>{
+          'setImageFileFormat': 'jpeg',
+        },
+      );
+
+      // Act
+      await camera.setImageFileFormat(cameraId, ImageFileFormat.jpeg);
+
+      // Assert
+      expect(channel.log, <Matcher>[
+        isMethodCall('setImageFileFormat', arguments: <String, Object?>{
+          'cameraId': cameraId,
+          'fileFormat': 'jpeg',
+        }),
+      ]);
+    });
   });
 }
-
-/// This allows a value of type T or T? to be treated as a value of type T?.
-///
-/// We use this so that APIs that have become non-nullable can still be used
-/// with `!` and `?` on the stable branch.
-T? _ambiguate<T>(T? value) => value;

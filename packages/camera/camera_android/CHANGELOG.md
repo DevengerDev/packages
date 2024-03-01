@@ -1,3 +1,8 @@
+## NEXT
+
+* Updates compileSdk version to 34.
+* Add placeholder physicalCameras and logicalCameras options to availableDevices method.
+
 ## 0.10.8+16
 
 * Fixes new lint warnings.
